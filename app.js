@@ -653,7 +653,12 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
 
 window.requestLocation = () => {
     document.getElementById('nearme-prompt').classList.add('hidden');
-    document.getElementById('nearme-loading').classList.remove('hidden');
+
+    // FIX: Remove hidden, but ADD flex so it centers properly
+    const loadingUI = document.getElementById('nearme-loading');
+    loadingUI.classList.remove('hidden');
+    loadingUI.classList.add('flex');
+
     document.getElementById('nearme-empty').classList.add('hidden');
 
     if ("geolocation" in navigator) {
@@ -666,14 +671,16 @@ window.requestLocation = () => {
                 renderNearMe();
             },
             (error) => {
-                document.getElementById('nearme-loading').classList.add('hidden');
+                loadingUI.classList.add('hidden');
+                loadingUI.classList.remove('flex');
                 document.getElementById('nearme-empty').classList.remove('hidden');
                 document.getElementById('nearme-empty-msg').textContent = "Location access denied. Please enable it in your browser settings to use this feature.";
             },
             { timeout: 10000 }
         );
     } else {
-        document.getElementById('nearme-loading').classList.add('hidden');
+        loadingUI.classList.add('hidden');
+        loadingUI.classList.remove('flex');
         document.getElementById('nearme-empty').classList.remove('hidden');
         document.getElementById('nearme-empty-msg').textContent = "Geolocation is not supported by your browser.";
     }
