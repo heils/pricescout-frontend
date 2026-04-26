@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <title>PriceScout | Canada's Cannabis Deal Finder</title>
+    <meta name="description"
+        content="Never overpay again. Find the best prices on flower, vapes, pre-rolls, and edibles at dispensaries near you in Canada.">
+    <meta name="keywords" content="cannabis deals, weed prices, dispensary near me, cheap weed canada, PriceScout">
+    <meta name="author" content="PriceScout">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://www.pricescout.ca/">
+
+    <meta property="og:title" content="PriceScout | Cannabis Deal Finder">
+    <meta property="og:description" content="Compare prices across local dispensaries and never overpay again.">
+    <meta property="og:image" content="https://ui-avatars.com/api/?name=PS&background=16a34a&color=fff&size=512">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="en_CA">
+    <meta name="twitter:card" content="summary_large_image">
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "PriceScout",
+      "applicationCategory": "ShoppingApplication",
+      "operatingSystem": "Web, iOS, Android",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "CAD"
+      },
+      "description": "Canada's premier cannabis deal aggregator. Find the cheapest prices for flower, vapes, and edibles near you.",
+      "browserRequirements": "Requires JavaScript. Requires HTML5."
+    }
+    </script>
+
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#ffffff">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="PriceScout">
+    <link rel="apple-touch-icon" href="https://ui-avatars.com/api/?name=PS&background=16a34a&color=fff&size=192">
+    <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="bg-gray-100 text-gray-900 font-sans antialiased selection:bg-green-200 overflow-hidden">
+
+    <div id="install-toast"
+        class="fixed top-4 left-4 right-4 max-w-md mx-auto z-[90] bg-white rounded-2xl shadow-2xl border border-gray-100 p-4 transform -translate-y-[150%] opacity-0 transition-all duration-500 ease-out flex items-center justify-between pointer-events-none hidden">
+        <div class="flex items-center gap-3">
+            <div
+                class="w-10 h-10 bg-gradient-to-tr from-green-500 to-green-600 rounded-xl flex items-center justify-center shrink-0 shadow-sm border border-green-700/20">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                </svg>
+            </div>
+            <div>
+                <div class="font-black text-gray-900 text-sm leading-tight">Get the App</div>
+                <div class="text-[11px] text-gray-500 font-medium">Add to home screen for fast access.</div>
+            </div>
+        </div>
+        <div class="flex items-center gap-2">
+            <button id="install-btn"
+                class="bg-gray-900 text-white text-[11px] font-bold px-4 py-2 rounded-lg hover:bg-black transition-colors shadow-sm">Install</button>
+            <button onclick="dismissInstall()"
+                class="text-gray-400 hover:text-gray-600 p-1.5 rounded-full hover:bg-gray-50 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                    </path>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <div id="age-gate"
+        class="fixed inset-0 z-[100] bg-white flex flex-col items-center justify-center p-6 transition-opacity duration-300">
+        <div class="max-w-sm w-full bg-white text-center">
+            <div class="mb-8">
+                <h1 class="text-4xl font-black tracking-tight text-green-700 mb-2">PriceScout</h1>
+                <p class="text-gray-500 font-medium">Canada's Cannabis Deal Finder</p>
+            </div>
+            <div class="bg-gray-50 border border-gray-100 rounded-3xl p-6 shadow-sm">
+                <h2 class="text-xl font-bold text-gray-900 mb-4">Select your province</h2>
+                <select id="province-select"
+                    class="w-full bg-white border border-gray-200 text-gray-700 font-bold py-3 px-4 rounded-xl mb-6 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all appearance-none cursor-pointer text-center text-lg">
+                    <option value="AB">Alberta</option>
+                    <option value="BC">British Columbia</option>
+                    <option value="MB" selected>Manitoba</option>
+                    <option value="NB">New Brunswick</option>
+                    <option value="NL">Newfoundland & Labrador</option>
+                    <option value="NT">Northwest Territories</option>
+                    <option value="NS">Nova Scotia</option>
+                    <option value="NU">Nunavut</option>
+                    <option value="ON">Ontario</option>
+                    <option value="PE">Prince Edward Island</option>
+                    <option value="QC">Quebec</option>
+                    <option value="SK">Saskatchewan</option>
+                    <option value="YT">Yukon</option>
+                </select>
+                <div class="w-full h-px bg-gray-200 mb-6"></div>
+                <h3 class="text-lg font-medium text-gray-700 mb-4" id="age-question">Are you 19 or older?</h3>
+                <div class="flex flex-col gap-3">
+                    <button onclick="confirmAge()" id="age-yes-btn"
+                        class="w-full bg-green-600 text-white font-bold py-3.5 rounded-xl hover:bg-green-700 transition-colors shadow-sm text-lg">Yes,
+                        I am 19+</button>
+                    <button onclick="denyAge()"
+                        class="w-full bg-white border border-gray-200 text-gray-500 font-bold py-3.5 rounded-xl hover:bg-gray-50 transition-colors">No,
+                        I am not</button>
+                </div>
+            </div>
+            <div class="mt-8 text-xs text-gray-400 font-medium px-4">
+                You must be of legal age in your province to use this platform. PriceScout is an independent data
+                aggregator and does not sell cannabis.
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-md mx-auto bg-white h-[100dvh] relative shadow-2xl overflow-hidden flex flex-col">
+
+        <div id="home-view" class="view-section active flex-1 overflow-y-auto pb-24 relative z-0 h-full">
+            <div class="sticky top-0 bg-white z-30 px-4 pt-4 pb-2 shadow-sm">
+                <div class="flex justify-between items-center mb-3">
+                    <h1 class="text-2xl font-black tracking-tight text-green-700">PriceScout</h1>
+                    <div class="flex items-center gap-2">
+                        <button onclick="changeCity()"
+                            class="flex items-center gap-1.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-600 hover:text-green-700 px-3 py-1.5 rounded-full text-xs font-bold transition-all shadow-sm">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z">
+                                </path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                            Change City
+                        </button>
+                        <button onclick="toggleAboutModal(true)"
+                            class="p-1.5 text-gray-400 bg-gray-50 border border-transparent hover:bg-gray-100 hover:text-green-600 rounded-full transition-colors focus:outline-none">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="relative mb-3 flex gap-2">
+                    <div class="relative flex-1">
+                        <svg class="w-4 h-4 absolute left-3 top-2.5 text-gray-400" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                        <input type="text" id="search-input" placeholder="Search strains..."
+                            class="w-full bg-gray-100 rounded-xl py-2 pl-9 pr-3 focus:outline-none focus:ring-2 focus:ring-green-500 transition-all text-sm font-medium">
+                    </div>
+
+                    <button onclick="toggleFilterMenu(true)"
+                        class="relative bg-gray-100 p-2.5 rounded-xl text-gray-600 hover:bg-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z">
+                            </path>
+                        </svg>
+                        <span id="filter-indicator"
+                            class="hidden absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 border-2 border-gray-100 rounded-full"></span>
+                    </button>
+                </div>
+                <div id="category-container" class="flex space-x-2 overflow-x-auto no-scrollbar py-1"></div>
+            </div>
+            <div id="product-grid" class="p-4 grid grid-cols-2 gap-3"></div>
+            <div id="loading" class="flex flex-col items-center justify-center py-20 text-gray-400 text-sm">Loading
+                marketplace...</div>
+        </div>
+
+        <div id="saved-view" class="view-section flex-1 overflow-y-auto pb-24 relative z-0 h-full bg-gray-50">
+            <div class="sticky top-0 bg-white z-30 px-4 pt-4 pb-3 shadow-sm flex items-center justify-between">
+                <h1 class="text-2xl font-black tracking-tight text-gray-900">Saved Deals</h1>
+            </div>
+            <div id="saved-grid" class="p-4 grid grid-cols-2 gap-3"></div>
+            <div id="saved-empty"
+                class="hidden flex-col items-center justify-center py-20 px-6 text-center text-gray-400">
+                <svg class="w-16 h-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                        d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z">
+                    </path>
+                </svg>
+                <p class="font-bold text-gray-600 mb-1">No saved items yet.</p>
+                <p class="text-xs">Tap the heart icon on any product to save it here for later.</p>
+            </div>
+        </div>
+
+        <div id="nearme-view" class="view-section flex-1 overflow-y-auto pb-24 relative z-0 h-full bg-gray-50">
+            <div class="sticky top-0 bg-white z-30 px-4 pt-4 pb-3 shadow-sm">
+                <h1 class="text-2xl font-black tracking-tight text-gray-900">Near Me</h1>
+            </div>
+
+            <div id="nearme-prompt" class="flex flex-col items-center justify-center py-20 px-6 text-center h-4/5">
+                <div class="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mb-6 shadow-inner">
+                    <svg class="w-10 h-10 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z">
+                        </path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    </svg>
+                </div>
+                <h2 class="text-xl font-black text-gray-900 mb-2">Find Local Deals</h2>
+                <p class="text-gray-500 text-sm mb-8">See the absolute best prices within a 5km radius of your current
+                    location.</p>
+                <button onclick="requestLocation()"
+                    class="w-full bg-blue-600 text-white font-bold py-3.5 rounded-xl hover:bg-blue-700 shadow-md transition-colors">
+                    Use My Location
+                </button>
+            </div>
+
+            <div id="nearme-loading" class="hidden flex-col items-center justify-center py-32 text-gray-400 text-sm">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-4"></div>
+                Scanning local dispensaries...
+            </div>
+
+            <div id="nearme-results" class="hidden p-4 grid grid-cols-2 gap-3"></div>
+
+            <div id="nearme-empty"
+                class="hidden flex-col items-center justify-center py-20 px-6 text-center text-gray-400">
+                <p class="font-bold text-gray-600 mb-1" id="nearme-empty-msg">No deals found nearby.</p>
+            </div>
+        </div>
+
+        <div id="smart-view" class="view-section flex-1 overflow-y-auto pb-24 relative z-0 h-full bg-gray-50">
+            <div class="h-full flex flex-col items-center justify-center p-6 text-center">
+                <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-6 shadow-inner">
+                    <svg class="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z">
+                        </path>
+                    </svg>
+                </div>
+                <h2 class="text-2xl font-black text-gray-900 mb-2">Smart Cart</h2>
+                <p class="text-gray-500 text-sm leading-relaxed mb-6">We are currently building an AI-driven tool that
+                    will automatically build your ideal cart based on the best deals nearby. Check back soon.</p>
+                <button onclick="window.location.hash=''"
+                    class="bg-gray-900 text-white font-bold py-3 px-6 rounded-xl shadow-sm hover:bg-black transition-colors">
+                    Back to Deals
+                </button>
+            </div>
+        </div>
+
+        <div id="details-view" class="slide-in absolute inset-0 bg-gray-50 z-50 flex flex-col overflow-y-auto pb-24">
+            <div class="sticky top-0 bg-white px-4 py-3 flex items-center justify-between shadow-sm z-30">
+                <div class="flex items-center flex-1 overflow-hidden">
+                    <button onclick="closeProduct()"
+                        class="p-2 -ml-2 rounded-full hover:bg-gray-100 text-gray-600 transition-colors shrink-0">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7">
+                            </path>
+                        </svg>
+                    </button>
+                    <div class="font-semibold ml-2 truncate" id="detail-nav-title">Product Details</div>
+                </div>
+                <div class="flex items-center gap-1 shrink-0">
+                    <button onclick="shareCurrentProduct()"
+                        class="p-2 rounded-full hover:bg-gray-100 text-gray-600 transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z">
+                            </path>
+                        </svg>
+                    </button>
+                    <button id="save-btn" onclick="toggleSaveCurrentProduct()"
+                        class="p-2 rounded-full hover:bg-gray-100 text-gray-600 transition-colors">
+                        <svg id="save-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z">
+                            </path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div id="details-content" class="pb-8"></div>
+        </div>
+
+        <div id="filter-modal" class="fixed inset-0 z-[70] hidden">
+            <div class="absolute inset-0 bg-gray-900/40 backdrop-blur-sm transition-opacity opacity-0"
+                id="filter-backdrop" onclick="toggleFilterMenu(false)"></div>
+            <div id="filter-drawer"
+                class="absolute top-0 right-0 h-full w-4/5 max-w-[320px] bg-white shadow-2xl transform translate-x-full flex flex-col">
+                <div class="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                    <h2 class="text-lg font-black text-gray-900">Filters</h2>
+                    <button onclick="toggleFilterMenu(false)"
+                        class="p-2 -mr-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-200 transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="flex-1 overflow-y-auto p-6 space-y-6">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-900 mb-2">Dispensary</label>
+                        <div id="custom-store-selector" class="custom-select relative w-full">
+                            <div
+                                class="select-trigger w-full bg-white border border-gray-200 text-gray-700 font-bold py-3 px-4 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer flex justify-between items-center shadow-sm">
+                                <span class="select-label">All Stores</span>
+                                <svg class="w-4 h-4 text-gray-400 transition-transform duration-200" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </div>
+                            <div
+                                class="select-menu absolute top-full left-0 right-0 w-full mt-1.5 bg-white border border-gray-100 rounded-2xl shadow-xl z-50 hidden opacity-0 transition-all duration-200 transform scale-95 origin-top max-h-48 overflow-y-auto overscroll-contain">
+                                <div class="p-1.5 flex flex-col gap-0.5 select-options"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-bold text-gray-900 mb-2">Strain Type</label>
+                        <div id="custom-strain-selector" class="custom-select relative w-full">
+                            <div
+                                class="select-trigger w-full bg-white border border-gray-200 text-gray-700 font-bold py-3 px-4 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer flex justify-between items-center shadow-sm">
+                                <span class="select-label">All Strains</span>
+                                <svg class="w-4 h-4 text-gray-400 transition-transform duration-200" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </div>
+                            <div
+                                class="select-menu absolute top-full left-0 right-0 w-full mt-1.5 bg-white border border-gray-100 rounded-2xl shadow-xl z-50 hidden opacity-0 transition-all duration-200 transform scale-95 origin-top max-h-48 overflow-y-auto overscroll-contain">
+                                <div class="p-1.5 flex flex-col gap-0.5 select-options"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pb-32">
+                        <label class="block text-sm font-bold text-gray-900 mb-2">Size / Weight</label>
+                        <div id="custom-weight-selector" class="custom-select relative w-full">
+                            <div
+                                class="select-trigger w-full bg-white border border-gray-200 text-gray-700 font-bold py-3 px-4 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer flex justify-between items-center shadow-sm">
+                                <span class="select-label">All Sizes</span>
+                                <svg class="w-4 h-4 text-gray-400 transition-transform duration-200" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </div>
+                            <div
+                                class="select-menu absolute top-full left-0 right-0 w-full mt-1.5 bg-white border border-gray-100 rounded-2xl shadow-xl z-50 hidden opacity-0 transition-all duration-200 transform scale-95 origin-top max-h-48 overflow-y-auto overscroll-contain">
+                                <div class="p-1.5 flex flex-col gap-0.5 select-options"></div>
+                            </div>
+                        </div>
+                        <p class="text-[10px] text-gray-400 mt-3 font-medium">*Sizes are specific to the currently
+                            selected category.</p>
+                    </div>
+                </div>
+                <div
+                    class="p-6 border-t border-gray-100 bg-white shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.05)] relative z-20">
+                    <button onclick="resetFilters()"
+                        class="w-full bg-gray-100 text-gray-600 font-bold py-3.5 rounded-xl hover:bg-gray-200 transition-colors">Reset
+                        Filters</button>
+                </div>
+            </div>
+        </div>
+
+        <div
+            class="absolute bottom-0 w-full bg-white/90 backdrop-blur-md border-t border-gray-100 pb-safe z-40 shadow-[0_-4px_20px_-10px_rgba(0,0,0,0.1)]">
+            <div class="flex justify-between items-center px-6 py-3">
+                <a href="#" id="nav-home" class="nav-btn flex flex-col items-center text-green-600 cursor-pointer">
+                    <svg class="w-6 h-6 mb-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path
+                            d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z">
+                        </path>
+                    </svg>
+                    <span class="text-[9px] font-bold tracking-wide">Home</span>
+                </a>
+                <a href="#saved" id="nav-saved"
+                    class="nav-btn flex flex-col items-center text-gray-400 hover:text-gray-600 transition-colors cursor-pointer">
+                    <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z">
+                        </path>
+                    </svg>
+                    <span class="text-[9px] font-bold tracking-wide">Saved</span>
+                </a>
+                <a href="#nearme" id="nav-nearme"
+                    class="nav-btn flex flex-col items-center text-gray-400 hover:text-gray-600 transition-colors cursor-pointer">
+                    <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z">
+                        </path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    </svg>
+                    <span class="text-[9px] font-bold tracking-wide">Near Me</span>
+                </a>
+                <a href="#smart" id="nav-smart"
+                    class="nav-btn flex flex-col items-center text-gray-400 hover:text-gray-600 transition-colors cursor-pointer">
+                    <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z">
+                        </path>
+                    </svg>
+                    <span class="text-[9px] font-bold tracking-wide">Smart Cart</span>
+                </a>
+            </div>
+        </div>
+
+        <div id="about-modal" onclick="if(event.target === this) toggleAboutModal(false)"
+            class="modal-fade absolute inset-0 z-[60] flex items-center justify-center bg-gray-900/40 p-4">
+            <div class="modal-scale bg-white rounded-3xl w-full max-w-sm shadow-2xl overflow-hidden relative">
+                <button onclick="toggleAboutModal(false)"
+                    class="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-full transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                        </path>
+                    </svg>
+                </button>
+                <div class="px-6 pt-8 pb-4 flex flex-col items-center text-center">
+                    <div
+                        class="w-14 h-14 bg-gradient-to-tr from-green-50 to-green-100 rounded-2xl flex items-center justify-center mb-4 border border-green-200">
+                        <svg class="w-7 h-7 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z">
+                            </path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-black text-gray-900 tracking-tight">Fair Pricing for Everyone.</h3>
+                </div>
+
+                <div class="px-6 pb-2 text-center">
+                    <p class="text-gray-500 text-sm leading-relaxed mb-4">
+                        We believe that consumers deserve transparent and honest pricing. PriceScout was built to cut
+                        through the noise of the fragmented market to make sure you <strong>never overpay
+                            again.</strong>
+                    </p>
+                    <div class="bg-gray-50 rounded-2xl p-4 mb-4 text-left border border-gray-100">
+                        <p class="text-gray-500 text-xs leading-relaxed">
+                            This tool is built and maintained entirely independently. If PriceScout helped you score a
+                            deal today, consider chipping in to help cover the server costs so we can keep the platform
+                            running and the data free.
+                        </p>
+                    </div>
+
+                    <a href="https://www.buymeacoffee.com/YOUR_USERNAME" target="_blank" rel="noopener noreferrer"
+                        class="block w-full bg-gray-900 text-white font-bold tracking-wide py-3.5 rounded-xl hover:bg-black transition-colors shadow-sm flex items-center justify-center gap-2 border border-gray-800">
+                        <span class="text-lg leading-none mb-0.5">☕</span> Buy me a coffee
+                    </a>
+                </div>
+
+                <div class="px-6 pb-6 mt-2">
+                    <div class="flex flex-col items-center">
+                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Got feedback or
+                            questions?</p>
+                        <a href="mailto:pricescoutcontact@gmail.com"
+                            class="inline-flex items-center gap-2 px-4 py-2 bg-gray-50 hover:bg-green-50 text-gray-600 hover:text-green-700 rounded-xl transition-colors border border-gray-100 hover:border-green-200 shadow-sm text-xs font-bold w-full justify-center">
+                            <svg class="w-4 h-4 text-current opacity-70" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z">
+                                </path>
+                            </svg>
+                            pricescoutcontact@gmail.com
+                        </a>
+                    </div>
+                </div>
+
+                <div
+                    class="bg-gray-50 border-t border-gray-100 px-6 py-4 flex justify-center items-center gap-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                    <button onclick="toggleLegalModal('terms')"
+                        class="hover:text-gray-600 transition-colors">Terms</button>
+                    <span>&bull;</span>
+                    <button onclick="toggleLegalModal('privacy')"
+                        class="hover:text-gray-600 transition-colors">Privacy</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="legal-modal" onclick="if(event.target === this) toggleLegalModal(false)"
+            class="modal-fade absolute inset-0 z-[80] flex items-center justify-center bg-gray-900/60 p-4">
+            <div
+                class="modal-scale bg-white rounded-3xl w-full max-w-sm shadow-2xl overflow-hidden relative flex flex-col max-h-[80vh]">
+                <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                    <h2 id="legal-title" class="text-sm font-black text-gray-900 uppercase tracking-wider">Legal</h2>
+                    <button onclick="toggleLegalModal(false)"
+                        class="p-2 -mr-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-200 transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div id="legal-content" class="p-6 overflow-y-auto text-xs text-gray-600 space-y-4 leading-relaxed">
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="app.js" defer></script>
+</body>
+
+</html>
