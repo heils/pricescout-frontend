@@ -231,6 +231,10 @@ const els = {
 let currentFiltered = [];
 let displayedCount = 0;
 const ITEMS_PER_PAGE = 20;
+
+let nearMeFiltered = [];
+let nearMeDisplayedCount = 0;
+
 let storeDropdownCtrl, strainDropdownCtrl, weightDropdownCtrl;
 
 const strainBaseOptions = [
@@ -243,6 +247,20 @@ const strainBaseOptions = [
 const generateId = (brand, name) => {
     return (brand + '-' + name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 };
+
+// --- TIMESTAMP LOGIC ---
+function timeAgo(dateString) {
+    if (!dateString) return "Updated recently";
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHrs = Math.floor(diffMins / 60);
+
+    if (diffMins < 60) return `Updated ${Math.max(diffMins, 1)} min ago`;
+    if (diffHrs < 24) return `Updated ${diffHrs} hr ago`;
+    return `Updated ${Math.floor(diffHrs / 24)} days ago`;
+}
 
 // --- ROUTER LOGIC ---
 window.addEventListener('hashchange', handleHash);
@@ -365,7 +383,6 @@ function populateWeightDropdown() {
     weightDropdownCtrl.updateOptions(options, state.activeWeight);
 }
 
-// MODIFIED to also reset the newly placed Store dropdown
 window.resetFilters = () => {
     state.activeStore = 'All Stores';
     state.activeStrain = 'All';
@@ -377,7 +394,6 @@ window.resetFilters = () => {
     toggleFilterMenu(false);
 };
 
-// MODIFIED to trigger the red dot if a store is selected
 function updateFilterIndicator() {
     if (state.activeStore !== 'All Stores' || state.activeStrain !== 'All' || state.activeWeight !== 'All') {
         els.filterIndicator.classList.remove('hidden');
@@ -401,6 +417,13 @@ async function init(citySlug) {
         const res = await fetch(url);
         if (!res.ok) throw new Error("Network response was not ok");
         const data = await res.json();
+
+        // READ TIMESTAMP FROM _meta.generated_at
+        const timeBadge = document.getElementById('last-updated-text');
+        if (timeBadge) {
+            const stamp = data._meta && data._meta.generated_at ? data._meta.generated_at : null;
+            timeBadge.textContent = stamp ? timeAgo(stamp) : "Updated recently";
+        }
 
         if (data.dispensaries) {
             state.dispensaries = data.dispensaries;
@@ -621,6 +644,15 @@ function loadMore() {
     displayedCount += toShow.length;
 }
 
+function loadMoreNearMe() {
+    const toShow = nearMeFiltered.slice(nearMeDisplayedCount, nearMeDisplayedCount + ITEMS_PER_PAGE);
+    if (toShow.length === 0) return;
+
+    const html = toShow.map(generateProductCard).join('');
+    document.getElementById('nearme-results').insertAdjacentHTML('beforeend', html);
+    nearMeDisplayedCount += toShow.length;
+}
+
 function renderSaved() {
     const savedProducts = state.products.filter(p => state.savedIds.includes(p._id));
     if (savedProducts.length === 0) {
@@ -634,6 +666,12 @@ function renderSaved() {
 
 els.views.home.addEventListener('scroll', () => {
     if (els.views.home.scrollTop + els.views.home.clientHeight >= els.views.home.scrollHeight - 200) { loadMore(); }
+});
+
+els.views.nearme.addEventListener('scroll', () => {
+    if (els.views.nearme.scrollTop + els.views.nearme.clientHeight >= els.views.nearme.scrollHeight - 200) {
+        loadMoreNearMe();
+    }
 });
 
 // --- NEAR ME / GPS LOGIC ---
@@ -651,7 +689,6 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
 window.requestLocation = () => {
     document.getElementById('nearme-prompt').classList.add('hidden');
 
-    // FIX: Remove hidden, but ADD flex so it centers properly
     const loadingUI = document.getElementById('nearme-loading');
     loadingUI.classList.remove('hidden');
     loadingUI.classList.add('flex');
@@ -716,8 +753,12 @@ function renderNearMe() {
     });
 
     if (nearbyProducts.length > 0) {
-        nearbyProducts.sort((a, b) => a._dist - b._dist);
-        resultsContainer.innerHTML = nearbyProducts.map(generateProductCard).join('');
+        nearMeFiltered = nearbyProducts.sort((a, b) => a._dist - b._dist);
+        nearMeDisplayedCount = 0;
+
+        resultsContainer.innerHTML = '';
+        loadMoreNearMe();
+
         resultsContainer.classList.remove('hidden');
         emptyContainer.classList.add('hidden');
     } else {
@@ -745,9 +786,10 @@ window.openProductModal = (product) => {
 
     els.detailsView.classList.add('active');
     els.detailsView.scrollTop = 0;
+
     setTimeout(() => {
         els.views.home.style.visibility = 'hidden';
-    }, 300); // Wait for the slide animation to finish before freezing it
+    }, 300);
 };
 
 window.setWeight = (idx) => { state.selectedWeightIdx = idx; renderDetails(); };
