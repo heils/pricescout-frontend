@@ -262,6 +262,7 @@ function handleHash() {
         }
     } else {
         els.detailsView.classList.remove('active');
+        els.views.home.style.visibility = 'visible';
     }
 
     const viewName = hash || 'home';
@@ -287,11 +288,7 @@ function handleHash() {
 }
 
 window.closeProduct = () => {
-    if (window.history.length > 1) {
-        window.history.back();
-    } else {
-        window.location.hash = '';
-    }
+    window.location.hash = '';
 };
 
 // --- MODALS ---
@@ -748,6 +745,9 @@ window.openProductModal = (product) => {
 
     els.detailsView.classList.add('active');
     els.detailsView.scrollTop = 0;
+    setTimeout(() => {
+        els.views.home.style.visibility = 'hidden';
+    }, 300); // Wait for the slide animation to finish before freezing it
 };
 
 window.setWeight = (idx) => { state.selectedWeightIdx = idx; renderDetails(); };
