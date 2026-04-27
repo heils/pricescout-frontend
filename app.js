@@ -695,13 +695,32 @@ window.requestLocation = () => {
 
     document.getElementById('nearme-empty').classList.add('hidden');
 
+    // 1. THE BYPASS: Check if we already found them during this session
+    const savedLat = sessionStorage.getItem('ps_user_lat');
+    const savedLng = sessionStorage.getItem('ps_user_lng');
+
+    if (savedLat && savedLng) {
+        state.userLocation = {
+            lat: parseFloat(savedLat),
+            lng: parseFloat(savedLng)
+        };
+        // Load instantly, no hardware ping required!
+        renderNearMe();
+        return;
+    }
+
+    // 2. THE HARDWARE PING: Only runs if we don't have their session location
     if ("geolocation" in navigator) {
         navigator.geolocation.getCurrentPosition(
             (position) => {
-                state.userLocation = {
-                    lat: position.coords.latitude,
-                    lng: position.coords.longitude
-                };
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+
+                // Save to temporary memory so refreshes are instantaneous
+                sessionStorage.setItem('ps_user_lat', lat);
+                sessionStorage.setItem('ps_user_lng', lng);
+
+                state.userLocation = { lat, lng };
                 renderNearMe();
             },
             (error) => {
@@ -709,17 +728,16 @@ window.requestLocation = () => {
                 loadingUI.classList.remove('flex');
                 document.getElementById('nearme-empty').classList.remove('hidden');
 
-                // Handle specific error codes so it doesn't lie to the user
                 let msg = "Location access denied. Please check your browser permissions.";
                 if (error.code === 2) msg = "Position unavailable. Make sure your device GPS is turned on.";
-                if (error.code === 3) msg = "Location request timed out. Please try again.";
+                if (error.code === 3) msg = "Location request timed out. Please check your signal and try again.";
 
                 document.getElementById('nearme-empty-msg').textContent = msg;
             },
             {
-                timeout: 15000, // Give it 15 seconds instead of 10
-                maximumAge: 300000, // MAGIC FIX: Allow the phone to use a cached GPS location from the last 5 minutes
-                enableHighAccuracy: false // Set to false so it locks on faster using cell towers/wifi instead of demanding pure GPS
+                timeout: 15000,
+                maximumAge: 300000,
+                enableHighAccuracy: false
             }
         );
     } else {
