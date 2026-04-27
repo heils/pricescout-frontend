@@ -302,7 +302,28 @@ function handleHash() {
     }
 
     if (viewName === 'saved') renderSaved();
-    if (viewName === 'nearme' && state.userLocation) renderNearMe();
+
+    // SMART NEAR ME ROUTING
+    if (viewName === 'nearme') {
+        if (state.userLocation) {
+            // 1. App is already running and has location (user just switched tabs)
+            document.getElementById('nearme-prompt').classList.add('hidden');
+            renderNearMe();
+        } else {
+            // 2. Fresh load. Check temporary memory or permanent browser permissions
+            const hasSession = sessionStorage.getItem('ps_user_lat');
+            if (hasSession) {
+                requestLocation(); // Auto-load from fast cache
+            } else if (navigator.permissions) {
+                // Ask the browser if we already have a permanent "Allow" from a previous day
+                navigator.permissions.query({ name: 'geolocation' }).then(result => {
+                    if (result.state === 'granted') {
+                        requestLocation(); // Auto-fire the hardware scan
+                    }
+                });
+            }
+        }
+    }
 }
 
 window.closeProduct = () => {
@@ -600,11 +621,13 @@ function getStrainBadge(strain, isDetails = false) {
     return `<div class="inline-flex items-center rounded border font-bold uppercase tracking-wider ${textSize} ${colorClass}">${icon}${matchedStrain}</div>`;
 }
 
-function generateProductCard(p) {
+function generateProductCard(p, view = 'home') {
     const saveBadge = p._savings > 0 ? `<div class="absolute top-1.5 right-1.5 bg-red-500 text-white text-[8px] font-black tracking-wide px-1.5 py-0.5 rounded shadow-sm z-10 pointer-events-none">Save $${p._savings.toFixed(2)}</div>` : '';
-    const isSavedView = window.location.hash === '#saved';
 
-    const isNearMeView = window.location.hash === '#nearme';
+    // Check the explicitly passed view instead of the URL hash
+    const isSavedView = view === 'saved';
+    const isNearMeView = view === 'nearme';
+
     const distBadge = (isNearMeView && p._dist) ? `<div class="absolute top-1.5 left-1.5 bg-blue-500 text-white text-[8px] font-black tracking-wide px-1.5 py-0.5 rounded shadow-sm z-10 pointer-events-none">${p._dist.toFixed(1)} km</div>` : '';
 
     const unsaveBtn = isSavedView ? `
@@ -639,7 +662,8 @@ function loadMore() {
     const toShow = currentFiltered.slice(displayedCount, displayedCount + ITEMS_PER_PAGE);
     if (toShow.length === 0) return;
 
-    const html = toShow.map(generateProductCard).join('');
+    // Explicitly pass 'home'
+    const html = toShow.map(p => generateProductCard(p, 'home')).join('');
     els.productGrid.insertAdjacentHTML('beforeend', html);
     displayedCount += toShow.length;
 }
@@ -648,7 +672,8 @@ function loadMoreNearMe() {
     const toShow = nearMeFiltered.slice(nearMeDisplayedCount, nearMeDisplayedCount + ITEMS_PER_PAGE);
     if (toShow.length === 0) return;
 
-    const html = toShow.map(generateProductCard).join('');
+    // Explicitly pass 'nearme'
+    const html = toShow.map(p => generateProductCard(p, 'nearme')).join('');
     document.getElementById('nearme-results').insertAdjacentHTML('beforeend', html);
     nearMeDisplayedCount += toShow.length;
 }
@@ -660,7 +685,8 @@ function renderSaved() {
         els.savedEmpty.classList.replace('hidden', 'flex');
     } else {
         els.savedEmpty.classList.replace('flex', 'hidden');
-        els.savedGrid.innerHTML = savedProducts.map(generateProductCard).join('');
+        // Explicitly pass 'saved'
+        els.savedGrid.innerHTML = savedProducts.map(p => generateProductCard(p, 'saved')).join('');
     }
 }
 
