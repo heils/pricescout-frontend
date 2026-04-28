@@ -4,6 +4,63 @@ const installToast = document.getElementById('install-toast');
 const installBtn = document.getElementById('install-btn');
 const hasDismissedInstall = localStorage.getItem('ps_install_dismissed');
 
+// --- MODAL UI & ROUTING HELPERS ---
+let currentMainView = 'home';
+let filterCloseTimeout;
+
+function safeBack() {
+    if (window.history.length > 1) {
+        window.history.back();
+    } else {
+        window.location.hash = currentMainView === 'home' ? '' : currentMainView;
+    }
+}
+
+function closeAllModalsUI() {
+    els.filterBackdrop.classList.add('opacity-0');
+    els.filterDrawer.classList.add('translate-x-full');
+
+    clearTimeout(filterCloseTimeout);
+    filterCloseTimeout = setTimeout(() => {
+        if (window.location.hash !== '#filters') {
+            els.filterModal.classList.add('hidden');
+        }
+    }, 300);
+
+    els.aboutModal.classList.remove('active');
+    els.legalModal.classList.remove('active');
+}
+
+function openFilterUI() {
+    els.filterModal.classList.remove('hidden');
+    clearTimeout(filterCloseTimeout);
+    setTimeout(() => {
+        els.filterBackdrop.classList.remove('opacity-0');
+        els.filterDrawer.classList.remove('translate-x-full');
+    }, 10);
+}
+
+function openAboutUI() { els.aboutModal.classList.add('active'); }
+
+function openLegalUI(type) {
+    if (type === 'terms') {
+        els.legalTitle.textContent = "Terms of Service";
+        els.legalContent.innerHTML = `
+            <p><strong>1. Informational Purposes Only:</strong> PriceScout is an independent data aggregator. We do not sell, distribute, or handle cannabis products. All data is scraped from publicly available dispensary menus.</p>
+            <p><strong>2. Accuracy & Liability:</strong> Prices, inventory, and product descriptions are subject to change by the respective dispensaries at any time. PriceScout is not a retailer and takes no responsibility for pricing errors, out-of-stock items, or discrepancies at the physical retail level.</p>
+            <p><strong>3. Legal Age Requirement:</strong> You must be of legal age to purchase cannabis in your respective province to use this application. By using this tool, you confirm that you meet the age requirements established by the Cannabis Act and your provincial regulator.</p>
+        `;
+    } else if (type === 'privacy') {
+        els.legalTitle.textContent = "Privacy Policy";
+        els.legalContent.innerHTML = `
+            <p><strong>1. Data Collection:</strong> PriceScout is built with privacy in mind. We do not require you to create an account, and we do not ask for or collect personally identifiable information (PII) such as your name, email, or exact physical address.</p>
+            <p><strong>2. Local Storage:</strong> User preferences, such as your "Saved Deals" and your age verification status, are stored locally on your device using browser \`localStorage\`. We do not upload this personal data to our servers.</p>
+            <p><strong>3. Analytics:</strong> We may use lightweight, anonymized analytics (such as page views or general city-level location) to understand platform usage and improve the tool. We do not track individual user behavior across the web.</p>
+        `;
+    }
+    els.legalModal.classList.add('active');
+}
+
 window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
@@ -268,24 +325,14 @@ window.addEventListener('hashchange', handleHash);
 function handleHash() {
     const hash = window.location.hash.replace('#', '');
 
-    if (hash.startsWith('product-')) {
-        const id = hash.replace('product-', '');
-        const product = state.products.find(p => p._id === id);
-        if (product) {
-            openProductModal(product);
-            return;
-        } else {
-            window.location.hash = '';
-            return;
-        }
-    } else {
-        els.detailsView.classList.remove('active');
-        els.views.home.style.visibility = 'visible';
+    // 1. Maintain Background View
+    const mainViews = ['home', 'saved', 'nearme', 'smart'];
+    if (mainViews.includes(hash) || hash === '') {
+        currentMainView = hash || 'home';
     }
 
-    const viewName = hash || 'home';
     Object.values(els.views).forEach(el => el.classList.remove('active'));
-    if (els.views[viewName]) els.views[viewName].classList.add('active');
+    if (els.views[currentMainView]) els.views[currentMainView].classList.add('active');
 
     Object.values(els.navs).forEach(el => {
         el.classList.remove('text-green-600');
@@ -294,68 +341,92 @@ function handleHash() {
         el.querySelector('svg').setAttribute('stroke', 'currentColor');
     });
 
-    if (els.navs[viewName]) {
-        els.navs[viewName].classList.remove('text-gray-400');
-        els.navs[viewName].classList.add('text-green-600');
-        els.navs[viewName].querySelector('svg').setAttribute('fill', 'currentColor');
-        els.navs[viewName].querySelector('svg').removeAttribute('stroke');
+    if (els.navs[currentMainView]) {
+        els.navs[currentMainView].classList.remove('text-gray-400');
+        els.navs[currentMainView].classList.add('text-green-600');
+        els.navs[currentMainView].querySelector('svg').setAttribute('fill', 'currentColor');
+        els.navs[currentMainView].querySelector('svg').removeAttribute('stroke');
     }
 
-    if (viewName === 'saved') renderSaved();
-
-    // SMART NEAR ME ROUTING
-    if (viewName === 'nearme') {
+    // Trigger specific view renders only if we are physically navigating to them
+    if (hash === 'saved') renderSaved();
+    if (hash === 'nearme') {
         if (state.userLocation) {
-            // 1. App is already running and has location (user just switched tabs)
             document.getElementById('nearme-prompt').classList.add('hidden');
             renderNearMe();
         } else {
-            // 2. Fresh load. Check temporary memory or permanent browser permissions
             const hasSession = sessionStorage.getItem('ps_user_lat');
             if (hasSession) {
-                requestLocation(); // Auto-load from fast cache
+                requestLocation();
             } else if (navigator.permissions) {
-                // Ask the browser if we already have a permanent "Allow" from a previous day
                 navigator.permissions.query({ name: 'geolocation' }).then(result => {
                     if (result.state === 'granted') {
-                        requestLocation(); // Auto-fire the hardware scan
+                        requestLocation();
                     }
                 });
             }
         }
     }
+
+    // 2. Handle Foreground Modals / Products
+    closeAllModalsUI();
+
+    if (hash.startsWith('product-')) {
+        const id = hash.replace('product-', '');
+        const product = state.products.find(p => p._id === id);
+        if (product) {
+            openProductModal(product);
+        } else {
+            window.location.hash = currentMainView === 'home' ? '' : currentMainView;
+        }
+        return;
+    } else {
+        els.detailsView.classList.remove('active');
+        els.views.home.style.visibility = 'visible';
+    }
+
+    // Modal interceptions
+    if (hash === 'filters') {
+        openFilterUI();
+        return;
+    }
+    if (hash === 'about') {
+        openAboutUI();
+        return;
+    }
+    if (hash.startsWith('legal-')) {
+        openLegalUI(hash.replace('legal-', ''));
+        return;
+    }
 }
 
-window.closeProduct = () => {
-    window.location.hash = '';
+window.toggleFilterMenu = (show) => {
+    if (show) window.location.hash = 'filters';
+    else if (window.location.hash === '#filters') safeBack();
 };
 
 // --- MODALS ---
-window.goHome = () => { window.location.hash = ''; };
-window.toggleAboutModal = (show) => { els.aboutModal.classList.toggle('active', show); };
+window.toggleFilterMenu = (show) => {
+    if (show) window.location.hash = 'filters';
+    else if (window.location.hash === '#filters') safeBack();
+};
+
+window.toggleAboutModal = (show) => {
+    if (show) window.location.hash = 'about';
+    else if (window.location.hash === '#about') safeBack();
+};
 
 window.toggleLegalModal = (type) => {
-    if (!type) {
-        els.legalModal.classList.remove('active');
-        return;
-    }
-    if (type === 'terms') {
-        els.legalTitle.textContent = "Terms of Service";
-        els.legalContent.innerHTML = `
-            <p><strong>1. Informational Purposes Only:</strong> PriceScout is an independent data aggregator. We do not sell, distribute, or handle cannabis products. All data is scraped from publicly available dispensary menus.</p>
-            <p><strong>2. Accuracy & Liability:</strong> Prices, inventory, and product descriptions are subject to change by the respective dispensaries at any time. PriceScout is not a retailer and takes no responsibility for pricing errors, out-of-stock items, or discrepancies at the physical retail level.</p>
-            <p><strong>3. Legal Age Requirement:</strong> You must be of legal age to purchase cannabis in your respective province to use this application. By using this tool, you confirm that you meet the age requirements established by the Cannabis Act and your provincial regulator.</p>
-        `;
-    } else if (type === 'privacy') {
-        els.legalTitle.textContent = "Privacy Policy";
-        els.legalContent.innerHTML = `
-            <p><strong>1. Data Collection:</strong> PriceScout is built with privacy in mind. We do not require you to create an account, and we do not ask for or collect personally identifiable information (PII) such as your name, email, or exact physical address.</p>
-            <p><strong>2. Local Storage:</strong> User preferences, such as your "Saved Deals" and your age verification status, are stored locally on your device using browser \`localStorage\`. We do not upload this personal data to our servers.</p>
-            <p><strong>3. Analytics:</strong> We may use lightweight, anonymized analytics (such as page views or general city-level location) to understand platform usage and improve the tool. We do not track individual user behavior across the web.</p>
-        `;
-    }
-    els.legalModal.classList.add('active');
+    if (type) window.location.hash = 'legal-' + type;
+    else if (window.location.hash.startsWith('#legal-')) safeBack();
 };
+
+window.closeProduct = () => {
+    if (window.location.hash.startsWith('#product-')) safeBack();
+    else window.location.hash = '';
+};
+
+window.goHome = () => { window.location.hash = ''; };
 
 // --- FILTER DRAWER LOGIC ---
 window.toggleFilterMenu = (show) => {
